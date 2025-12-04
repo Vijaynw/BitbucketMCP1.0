@@ -1,6 +1,6 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 export interface RepoContext {
   repoRoot: string;
@@ -11,21 +11,20 @@ export interface RepoContext {
 }
 
 export function findRepoRoot(startDir: string = process.cwd()): string {
-  let dir = startDir;
-  while (true) {
-    const gitDir = path.join(dir, '.git');
-    if (fs.existsSync(gitDir)) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
+  const res = spawnSync("git", ["rev-parse", "--show-toplevel"], {
+    cwd: startDir,
+    encoding: "utf-8",
+  });
+  if (res.status !== 0) {
+    throw new Error("No git repository found from current directory upwards");
   }
-  throw new Error('No git repository found from current directory upwards');
+  return res.stdout.trim();
 }
 
 export function getRemoteUrl(repoRoot: string): string {
-  const res = spawnSync('git', ['config', '--get', 'remote.origin.url'], {
+  const res = spawnSync("git", ["config", "--get", "remote.origin.url"], {
     cwd: repoRoot,
-    encoding: 'utf-8',
+    encoding: "utf-8",
   });
   if (res.status !== 0) {
     throw new Error(`Failed to get git remote: ${res.stderr || res.stdout}`);
@@ -44,12 +43,15 @@ export function parseBitbucketRemote(remoteUrl: string): {
     const host = ssh[1];
     const workspace = ssh[2];
     let repo = ssh[3];
-    if (repo.endsWith('.git')) repo = repo.slice(0, -4);
+    if (repo.endsWith(".git")) repo = repo.slice(0, -4);
     return { host, workspace, repoSlug: repo };
   }
 
   // HTTPS: https://bitbucket.org/workspace/repo.git OR https://user@bitbucket.org/workspace/repo.git
-  const https = /^https?:\/\/(?:[^@]+@)?([^\/]+)\/([^\/]+)\/(.+?)(?:\.git)?$/i.exec(remoteUrl);
+  const https =
+    /^https?:\/\/(?:[^@]+@)?([^\/]+)\/([^\/]+)\/(.+?)(?:\.git)?$/i.exec(
+      remoteUrl
+    );
   if (https) {
     const host = https[1];
     const workspace = https[2];
@@ -61,12 +63,14 @@ export function parseBitbucketRemote(remoteUrl: string): {
 }
 
 export function getCurrentBranch(repoRoot: string): string {
-  const res = spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+  const res = spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
     cwd: repoRoot,
-    encoding: 'utf-8',
+    encoding: "utf-8",
   });
   if (res.status !== 0) {
-    throw new Error(`Failed to get current branch: ${res.stderr || res.stdout}`);
+    throw new Error(
+      `Failed to get current branch: ${res.stderr || res.stdout}`
+    );
   }
   return res.stdout.trim();
 }

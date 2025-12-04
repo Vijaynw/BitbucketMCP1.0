@@ -630,4 +630,275 @@ export class BitbucketClient {
       return this.request(path);
     }
   }
+
+  async approvePullRequest(workspace: string, repoSlug: string, prId: number) {
+    console.log(
+      `[approvePullRequest] workspace=${workspace}, repoSlug=${repoSlug}, prId=${prId}`
+    );
+    if (this.isCloud) {
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/pullrequests/${prId}/approve`,
+        { method: "POST" }
+      );
+    } else {
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/pull-requests/${prId}/approve`,
+        { method: "POST" }
+      );
+    }
+  }
+
+  async declinePullRequest(workspace: string, repoSlug: string, prId: number) {
+    console.log(
+      `[declinePullRequest] workspace=${workspace}, repoSlug=${repoSlug}, prId=${prId}`
+    );
+    if (this.isCloud) {
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/pullrequests/${prId}/decline`,
+        { method: "POST" }
+      );
+    } else {
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/pull-requests/${prId}/decline`,
+        { method: "POST" }
+      );
+    }
+  }
+
+  async mergePullRequest(
+    workspace: string,
+    repoSlug: string,
+    prId: number,
+    options?: {
+      closeSourceBranch?: boolean;
+      mergeStrategy?: "merge_commit" | "squash" | "fast_forward";
+      message?: string;
+    }
+  ) {
+    console.log(
+      `[mergePullRequest] workspace=${workspace}, repoSlug=${repoSlug}, prId=${prId}, strategy=${
+        options?.mergeStrategy || "default"
+      }`
+    );
+    if (this.isCloud) {
+      const body: any = {};
+      if (options?.closeSourceBranch !== undefined) {
+        body.close_source_branch = options.closeSourceBranch;
+      }
+      if (options?.mergeStrategy) {
+        body.merge_strategy = options.mergeStrategy;
+      }
+      if (options?.message) {
+        body.message = options.message;
+      }
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/pullrequests/${prId}/merge`,
+        {
+          method: "POST",
+          body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
+        }
+      );
+    } else {
+      // Bitbucket Server merge
+      const body: any = { version: 0 }; // Version is required for Server
+      if (options?.message) {
+        body.message = options.message;
+      }
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/pull-requests/${prId}/merge`,
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        }
+      );
+    }
+  }
+
+  async updatePullRequest(
+    workspace: string,
+    repoSlug: string,
+    prId: number,
+    updates: { title?: string; description?: string }
+  ) {
+    console.log(
+      `[updatePullRequest] workspace=${workspace}, repoSlug=${repoSlug}, prId=${prId}`
+    );
+    if (this.isCloud) {
+      const body: any = {};
+      if (updates.title) body.title = updates.title;
+      if (updates.description) body.description = updates.description;
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/pullrequests/${prId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }
+      );
+    } else {
+      const body: any = { version: 0 }; // Version required for Server
+      if (updates.title) body.title = updates.title;
+      if (updates.description) body.description = updates.description;
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/pull-requests/${prId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }
+      );
+    }
+  }
+
+  async addPullRequestReviewers(
+    workspace: string,
+    repoSlug: string,
+    prId: number,
+    reviewers: string[]
+  ) {
+    console.log(
+      `[addPullRequestReviewers] workspace=${workspace}, repoSlug=${repoSlug}, prId=${prId}, reviewers=${reviewers.join(
+        ", "
+      )}`
+    );
+    if (this.isCloud) {
+      // For Cloud, we need to update the PR with reviewers
+      const body = {
+        reviewers: reviewers.map((uuid) => ({ uuid })),
+      };
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/pullrequests/${prId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }
+      );
+    } else {
+      // For Server, add reviewers individually
+      const promises = reviewers.map((username) =>
+        this.request(
+          `/projects/${encodeURIComponent(
+            workspace
+          )}/repos/${encodeURIComponent(
+            repoSlug
+          )}/pull-requests/${prId}/participants`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              user: { name: username },
+              role: "REVIEWER",
+            }),
+          }
+        )
+      );
+      return Promise.all(promises);
+    }
+  }
+
+  async listPullRequestComments(
+    workspace: string,
+    repoSlug: string,
+    prId: number
+  ) {
+    console.log(
+      `[listPullRequestComments] workspace=${workspace}, repoSlug=${repoSlug}, prId=${prId}`
+    );
+    if (this.isCloud) {
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/pullrequests/${prId}/comments`
+      );
+    } else {
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/pull-requests/${prId}/activities`
+      );
+    }
+  }
+
+  async getCommit(workspace: string, repoSlug: string, commitHash: string) {
+    console.log(
+      `[getCommit] workspace=${workspace}, repoSlug=${repoSlug}, commitHash=${commitHash}`
+    );
+    if (this.isCloud) {
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/commit/${encodeURIComponent(commitHash)}`
+      );
+    } else {
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/commits/${encodeURIComponent(commitHash)}`
+      );
+    }
+  }
+
+  async getCommitDiff(workspace: string, repoSlug: string, commitHash: string) {
+    console.log(
+      `[getCommitDiff] workspace=${workspace}, repoSlug=${repoSlug}, commitHash=${commitHash}`
+    );
+    if (this.isCloud) {
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/diff/${encodeURIComponent(commitHash)}`
+      );
+    } else {
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/commits/${encodeURIComponent(commitHash)}/diff`
+      );
+    }
+  }
+
+  async compareBranches(
+    workspace: string,
+    repoSlug: string,
+    source: string,
+    destination: string
+  ) {
+    console.log(
+      `[compareBranches] workspace=${workspace}, repoSlug=${repoSlug}, source=${source}, dest=${destination}`
+    );
+    if (this.isCloud) {
+      // Cloud uses spec format: destination..source
+      return this.request(
+        `/repositories/${encodeURIComponent(workspace)}/${encodeURIComponent(
+          repoSlug
+        )}/diff/${encodeURIComponent(destination)}..${encodeURIComponent(
+          source
+        )}`
+      );
+    } else {
+      // Server uses from/to query params
+      return this.request(
+        `/projects/${encodeURIComponent(workspace)}/repos/${encodeURIComponent(
+          repoSlug
+        )}/compare/diff?from=${encodeURIComponent(
+          source
+        )}&to=${encodeURIComponent(destination)}`
+      );
+    }
+  }
 }
