@@ -1,74 +1,241 @@
 # Bitbucket MCP Server
 
-A Model Context Protocol server for Bitbucket Cloud and Server, built with TypeScript and Node.js. Provides tools for repository info, pull requests, branches, and commits. **Requires explicit workspace and repoSlug parameters for all repository-specific operations.**
+[![npm version](https://img.shields.io/npm/v/@yogeshrathod/bitbucket-mcp.svg)](https://www.npmjs.com/package/@yogeshrathod/bitbucket-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.17.0-brightgreen.svg)](https://nodejs.org/)
+
+A Model Context Protocol (MCP) server for Bitbucket Cloud and Server APIs, built with TypeScript and Node.js. Provides comprehensive tools for repository management, pull requests, branches, commits, and file operations.
 
 ## Features
 
-- **Bitbucket Cloud API v2** or **Server API v1.0** support (auto-detected by base URL)
-- **MCP stdio server** ready to run via `npx bitbucket-mcp`
-- **Config via env or JSON** compatible with your provided structure
-- **Tests** with Vitest and Nock
+- **Dual API Support** - Bitbucket Cloud API v2 and Server API v1.0 (auto-detected by base URL)
+- **25+ MCP Tools** - Complete coverage of Bitbucket operations
+- **Flexible Configuration** - Environment variables or JSON config files
+- **Smart Defaults** - Auto-detects current branch for PR creation
+- **Structured Errors** - Detailed error responses with suggestions
+- **TypeScript** - Full type safety and modern ES modules
+
+## Installation
+
+### Using npm (Global)
+
+```bash
+npm install -g @yogeshrathod/bitbucket-mcp
+```
+
+### Using npx (No Installation)
+
+```bash
+npx @yogeshrathod/bitbucket-mcp
+```
+
+## Updating
+
+### Update Global Installation
+
+```bash
+npm update -g @yogeshrathod/bitbucket-mcp
+```
+
+### Update to Latest with npx
+
+```bash
+npx @yogeshrathod/bitbucket-mcp@latest
+```
+
+### Check Current Version
+
+```bash
+npm list -g @yogeshrathod/bitbucket-mcp
+```
 
 ## Configuration
 
-Use environment variables or a JSON config file in the working directory.
+Configure the server using environment variables or a JSON config file.
 
-- Env vars:
+### Environment Variables
 
-  - `ATLASSIAN_SITE_URL=<base_url>` (e.g., 'bitbucket' for Cloud API `https://api.bitbucket.org/2.0`, or 'https://your-server.com/bitbucket' for Server API)
-  - `ATLASSIAN_USER_EMAIL=<your_email>`
-  - `ATLASSIAN_API_TOKEN=<your_api_token>` (Bitbucket App Password for Cloud, Personal Access Token for Server)
+```bash
+export ATLASSIAN_SITE_URL="bitbucket"  # or your server URL
+export ATLASSIAN_USER_EMAIL="your-email@example.com"
+export ATLASSIAN_API_TOKEN="your-app-password-or-pat"
+```
 
-- JSON file (any of `mcp.config.json`, `.mcp.config.json`, `.bitbucket.mcp.json`):
+| Variable               | Description                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| `ATLASSIAN_SITE_URL`   | `bitbucket` for Cloud API, or full URL for Server (e.g., `https://bitbucket.company.com`) |
+| `ATLASSIAN_USER_EMAIL` | Your Bitbucket account email                                                              |
+| `ATLASSIAN_API_TOKEN`  | App Password (Cloud) or Personal Access Token (Server)                                    |
+
+### JSON Config File
+
+Create one of these files in your working directory: `mcp.config.json`, `.mcp.config.json`, or `.bitbucket.mcp.json`
 
 ```json
 {
   "bitbucket": {
     "environments": {
       "ATLASSIAN_SITE_URL": "bitbucket",
-      "ATLASSIAN_USER_EMAIL": "<your_email>",
-      "ATLASSIAN_API_TOKEN": "<your_api_token>"
+      "ATLASSIAN_USER_EMAIL": "your-email@example.com",
+      "ATLASSIAN_API_TOKEN": "your-app-password"
     }
   }
 }
 ```
 
-## Usage
+### MCP Client Configuration
 
-- Install globally:
+Add to your MCP client config (e.g., Claude Desktop, Windsurf):
 
-```bash
-npm install -g @yogeshrathod/bitbucket-mcp
+```json
+{
+  "mcpServers": {
+    "bitbucket": {
+      "command": "npx",
+      "args": ["@yogeshrathod/bitbucket-mcp"],
+      "env": {
+        "ATLASSIAN_SITE_URL": "bitbucket",
+        "ATLASSIAN_USER_EMAIL": "your-email@example.com",
+        "ATLASSIAN_API_TOKEN": "your-app-password"
+      }
+    }
+  }
+}
 ```
 
-- Or run directly with npx:
+## Tools Reference
 
-```bash
-npx @yogeshrathod/bitbucket-mcp
+All repository-specific tools require `workspace` and `repoSlug` parameters.
+
+### Connection & Discovery
+
+| Tool              | Description                      | Parameters              |
+| ----------------- | -------------------------------- | ----------------------- |
+| `connection_test` | Test connection to Bitbucket API | -                       |
+| `workspaces_list` | List all accessible workspaces   | -                       |
+| `repos_list`      | List repositories in a workspace | `workspace`             |
+| `repo_info`       | Get repository details           | `workspace`, `repoSlug` |
+
+### Pull Requests
+
+| Tool               | Description                 | Parameters                                                                          |
+| ------------------ | --------------------------- | ----------------------------------------------------------------------------------- |
+| `pr_list`          | List pull requests          | `workspace`, `repoSlug`, `state?` (OPEN\|MERGED\|DECLINED\|SUPERSEDED)              |
+| `pr_create`        | Create a pull request       | `workspace`, `repoSlug`, `title`, `sourceBranch?`, `destBranch?`, `description?`    |
+| `pr_get`           | Get PR details              | `workspace`, `repoSlug`, `prId`                                                     |
+| `pr_update`        | Update PR title/description | `workspace`, `repoSlug`, `prId`, `title?`, `description?`                           |
+| `pr_diff`          | Get PR diff                 | `workspace`, `repoSlug`, `prId`                                                     |
+| `pr_changes`       | Get file changes in PR      | `workspace`, `repoSlug`, `prId`                                                     |
+| `pr_approve`       | Approve a PR                | `workspace`, `repoSlug`, `prId`                                                     |
+| `pr_decline`       | Decline/reject a PR         | `workspace`, `repoSlug`, `prId`                                                     |
+| `pr_merge`         | Merge a PR                  | `workspace`, `repoSlug`, `prId`, `closeSourceBranch?`, `mergeStrategy?`, `message?` |
+| `pr_comment_add`   | Add comment to PR           | `workspace`, `repoSlug`, `prId`, `text`                                             |
+| `pr_comments_list` | List PR comments            | `workspace`, `repoSlug`, `prId`                                                     |
+| `pr_reviewers_add` | Add reviewers to PR         | `workspace`, `repoSlug`, `prId`, `reviewers` (array)                                |
+
+### Branches
+
+| Tool             | Description          | Parameters                                       |
+| ---------------- | -------------------- | ------------------------------------------------ |
+| `branches_list`  | List branches        | `workspace`, `repoSlug`                          |
+| `branch_create`  | Create a branch      | `workspace`, `repoSlug`, `name`, `targetHash`    |
+| `branch_compare` | Compare two branches | `workspace`, `repoSlug`, `source`, `destination` |
+
+### Commits
+
+| Tool           | Description        | Parameters                            |
+| -------------- | ------------------ | ------------------------------------- |
+| `commits_list` | List commits       | `workspace`, `repoSlug`, `spec?`      |
+| `commit_get`   | Get commit details | `workspace`, `repoSlug`, `commitHash` |
+| `commit_diff`  | Get commit diff    | `workspace`, `repoSlug`, `commitHash` |
+
+### Files
+
+| Tool           | Description                | Parameters                                        |
+| -------------- | -------------------------- | ------------------------------------------------- |
+| `file_content` | Get file content at commit | `workspace`, `repoSlug`, `filePath`, `commitHash` |
+
+## Usage Examples
+
+### List Open Pull Requests
+
+```json
+{
+  "tool": "pr_list",
+  "arguments": {
+    "workspace": "my-workspace",
+    "repoSlug": "my-repo",
+    "state": "OPEN"
+  }
+}
 ```
 
-The server will require explicit workspace and repoSlug parameters for all repository operations.
+### Create a Pull Request
 
-### Tools
+```json
+{
+  "tool": "pr_create",
+  "arguments": {
+    "workspace": "my-workspace",
+    "repoSlug": "my-repo",
+    "title": "Add new feature",
+    "sourceBranch": "feature/my-feature",
+    "destBranch": "main",
+    "description": "This PR adds a new feature"
+  }
+}
+```
 
-- **repo_info**: Get repository info. Requires `workspace` and `repoSlug`.
-- **pr_list**: List PRs. Requires `workspace` and `repoSlug`. Optional `state`=OPEN|MERGED|DECLINED|SUPERSEDED (default OPEN).
-- **pr_create**: Create a PR with `title`, `sourceBranch`, `destBranch`. Requires `workspace` and `repoSlug`. Optional `description`.
-- **pr_get**: Get details of a specific PR by `prId`. Requires `workspace`, `repoSlug`, and `prId`.
-- **pr_diff**: Get diff of a PR. Requires `workspace`, `repoSlug`, and `prId`.
-- **pr_changes**: Get file changes in a PR. Requires `workspace`, `repoSlug`, and `prId`.
-- **pr_comment_add**: Add a comment to a PR. Requires `workspace`, `repoSlug`, `prId`, and `text`.
-- **branches_list**: List branches. Requires `workspace` and `repoSlug`.
-- **branch_create**: Create a branch with `name` and `targetHash`. Requires `workspace` and `repoSlug`.
-- **commits_list**: List commits, optional `spec`. Requires `workspace` and `repoSlug`.
-- **workspaces_list**: List all accessible workspaces.
-- **repos_list**: List repositories in a workspace. Requires `workspace`.
-- **file_content**: Get content of a file at a specific commit. Requires `workspace`, `repoSlug`, `filePath`, and `commitHash`.
-- **connection_test**: Test connection to Bitbucket API.
+### Merge a Pull Request
+
+```json
+{
+  "tool": "pr_merge",
+  "arguments": {
+    "workspace": "my-workspace",
+    "repoSlug": "my-repo",
+    "prId": 123,
+    "mergeStrategy": "squash",
+    "closeSourceBranch": true
+  }
+}
+```
+
+### Compare Branches
+
+```json
+{
+  "tool": "branch_compare",
+  "arguments": {
+    "workspace": "my-workspace",
+    "repoSlug": "my-repo",
+    "source": "feature/my-feature",
+    "destination": "main"
+  }
+}
+```
 
 ## Development
 
-- Build: `npm run build`
-- Test: `npm test`
+```bash
+# Install dependencies
+npm install
 
-Requires Node.js >= 18.17.
+# Build
+npm run build
+
+# Run tests
+npm test
+
+# Start development server
+npm start
+```
+
+## Requirements
+
+- Node.js >= 18.17.0
+- Bitbucket Cloud App Password or Server Personal Access Token
+
+## License
+
+MIT © Yogesh Rathod

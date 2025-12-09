@@ -626,7 +626,7 @@ async function main() {
   });
 
   const server = new Server(
-    { name: "bitbucket-mcp", version: "0.1.0" },
+    { name: "@yogeshrathod/bitbucket-mcp", version: "1.0.1" },
     { capabilities: { tools: {} } }
   );
 
