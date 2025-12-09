@@ -1,7 +1,7 @@
 {
-  "name": "bitbucket-mcp",
-  "version": "0.1.0",
-  "description": "Bitbucket MCP server with repo auto-detection and core operations",
+  "name": "@yogeshrathod/bitbucket-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for Bitbucket Cloud and Server API - provides tools for repository info, pull requests, branches, commits, and file operations",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -9,7 +9,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -24,12 +25,27 @@
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "bitbucket",
+    "bitbucket-cloud",
+    "bitbucket-server",
     "atlassian",
-    "server"
+    "ai",
+    "llm",
+    "pull-request",
+    "git",
+    "api"
   ],
-  "author": "",
+  "author": "Yogesh Rathod <yogeshrathod@example.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yogeshrathod/bitbucket-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yogeshrathod/bitbucket-mcp/issues"
+  },
+  "homepage": "https://github.com/yogeshrathod/bitbucket-mcp#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",
     "axios": "^1.7.7",

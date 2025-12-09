@@ -14,11 +14,13 @@ A Model Context Protocol server for Bitbucket Cloud and Server, built with TypeS
 Use environment variables or a JSON config file in the working directory.
 
 - Env vars:
+
   - `ATLASSIAN_SITE_URL=<base_url>` (e.g., 'bitbucket' for Cloud API `https://api.bitbucket.org/2.0`, or 'https://your-server.com/bitbucket' for Server API)
   - `ATLASSIAN_USER_EMAIL=<your_email>`
   - `ATLASSIAN_API_TOKEN=<your_api_token>` (Bitbucket App Password for Cloud, Personal Access Token for Server)
 
 - JSON file (any of `mcp.config.json`, `.mcp.config.json`, `.bitbucket.mcp.json`):
+
 ```json
 {
   "bitbucket": {
@@ -33,10 +35,18 @@ Use environment variables or a JSON config file in the working directory.
 
 ## Usage
 
-- Local run as MCP server over stdio:
+- Install globally:
+
+```bash
+npm install -g @yogeshrathod/bitbucket-mcp
 ```
-npx bitbucket-mcp
+
+- Or run directly with npx:
+
+```bash
+npx @yogeshrathod/bitbucket-mcp
 ```
+
 The server will require explicit workspace and repoSlug parameters for all repository operations.
 
 ### Tools
