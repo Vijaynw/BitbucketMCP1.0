@@ -11,14 +11,22 @@ export interface RepoContext {
 }
 
 export function findRepoRoot(startDir: string = process.cwd()): string {
-  const res = spawnSync("git", ["rev-parse", "--show-toplevel"], {
-    cwd: startDir,
-    encoding: "utf-8",
-  });
-  if (res.status !== 0) {
-    throw new Error("No git repository found from current directory upwards");
+  let currentDir = path.resolve(startDir);
+
+  while (true) {
+    const gitPath = path.join(currentDir, ".git");
+    if (fs.existsSync(gitPath)) {
+      return currentDir;
+    }
+
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      break;
+    }
+    currentDir = parentDir;
   }
-  return res.stdout.trim();
+
+  throw new Error("No git repository found from current directory upwards");
 }
 
 export function getRemoteUrl(repoRoot: string): string {

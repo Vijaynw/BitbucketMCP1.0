@@ -369,49 +369,6 @@ async function main() {
   });
 
   addTool({
-    name: "identify_repo",
-    description:
-      "Identify the Bitbucket workspace and repository slug from the current git repository's remote URL. Returns workspace, repoSlug, host, remoteUrl, repoRoot, and currentBranch.",
-    inputSchema: { type: "object", properties: {} },
-    handler: async (args: any) => {
-      try {
-        const repoRoot = findRepoRoot();
-        const remoteUrl = getRemoteUrl(repoRoot);
-        const { host, workspace, repoSlug } = parseBitbucketRemote(remoteUrl);
-        const currentBranch = getCurrentBranch(repoRoot);
-        return {
-          content: jsonOut({
-            workspace,
-            repoSlug,
-            host,
-            remoteUrl,
-            repoRoot,
-            currentBranch,
-          }),
-        };
-      } catch (error: any) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  error: error.message,
-                  suggestion:
-                    "Ensure you are in a git repository with a Bitbucket remote configured.",
-                },
-                null,
-                2
-              ),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
-
-  addTool({
     name: "commits_list",
     description:
       "List commits in the repository. Requires workspace and repoSlug parameters. Optional spec (branch or commit range).",
