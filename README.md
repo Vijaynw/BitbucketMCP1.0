@@ -1,8 +1,11 @@
 # Bitbucket MCP Server
 
 [![npm version](https://img.shields.io/npm/v/@yogeshrathod/bitbucket-mcp.svg)](https://www.npmjs.com/package/@yogeshrathod/bitbucket-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/@yogeshrathod/bitbucket-mcp.svg)](https://www.npmjs.com/package/@yogeshrathod/bitbucket-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.17.0-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
 
 A Model Context Protocol (MCP) server for Bitbucket Cloud and Server APIs, built with TypeScript and Node.js. Provides comprehensive tools for repository management, pull requests, branches, commits, and file operations.
 
@@ -61,11 +64,11 @@ export ATLASSIAN_USER_EMAIL="your-email@example.com"
 export ATLASSIAN_API_TOKEN="your-app-password-or-pat"
 ```
 
-| Variable               | Description                                                                               |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| `ATLASSIAN_SITE_URL`   | `bitbucket` for Cloud API, or full URL for Server (e.g., `https://bitbucket.company.com`) |
-| `ATLASSIAN_USER_EMAIL` | Your Bitbucket account email                                                              |
-| `ATLASSIAN_API_TOKEN`  | App Password (Cloud) or Personal Access Token (Server)                                    |
+| Variable               | Description                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| `ATLASSIAN_SITE_URL`   | `bitbucket` for Cloud API, or full URL for Server (e.g., `https://bitbucket.company.com/rest/api/1.0`) |
+| `ATLASSIAN_USER_EMAIL` | Your Bitbucket account email                                                                           |
+| `ATLASSIAN_API_TOKEN`  | App Password (Cloud) or Personal Access Token (Server)                                                 |
 
 ### JSON Config File
 
@@ -74,10 +77,12 @@ Create one of these files in your working directory: `mcp.config.json`, `.mcp.co
 ```json
 {
   "bitbucket": {
+    "defaultDestinationBranch": "main",
     "environments": {
-      "ATLASSIAN_SITE_URL": "bitbucket",
+      "ATLASSIAN_SITE_URL": "https://bitbucket.company.com/rest/api/1.0",
       "ATLASSIAN_USER_EMAIL": "your-email@example.com",
-      "ATLASSIAN_API_TOKEN": "your-app-password"
+      "ATLASSIAN_API_TOKEN": "your-app-password",
+      "BITBUCKET_DEFAULT_DEST_BRANCH": "main"
     }
   }
 }
